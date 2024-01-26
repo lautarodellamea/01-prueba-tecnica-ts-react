@@ -1,11 +1,12 @@
 import { type User } from '../types/types'
 
 interface Props {
+  deleteUser: (email:string) => void
   showColors: boolean
   users: User[]
 }
 
-export const UserList = ({ users, showColors }: Props) => {
+export const UserList = ({ users, showColors,deleteUser }: Props) => {
   return (
     <table width="100%">
       <thead>
@@ -18,19 +19,21 @@ export const UserList = ({ users, showColors }: Props) => {
         </tr>
       </thead>
 
-      <tbody>
+      <tbody className={showColors ? "table--showColors" : "table"}>
         {
           users.map((user, index) => {
-            const backgroundColor = index % 2 === 0 ? '#333' : '#555'
-            const color = showColors ? backgroundColor : 'transparent'
+            // esta es otra forma sin el className del tbody
+            // const backgroundColor = index % 2 === 0 ? '#333' : '#555'
+            // const color = showColors ? backgroundColor : 'transparent'
+            // style={{ backgroundColor: color }} agregar esto al tr
 
             return (
-              <tr key={user.login.uuid} style={{ backgroundColor: color }}>
+              <tr key={user.email} >
                 <td><img src={user.picture.thumbnail} /></td>
                 <td>{user.name.first}</td>
                 <td>{user.name.last}</td>
                 <td>{user.location.country}</td>
-                <td><button>Borrar</button></td>
+                <td><button onClick={()=> {deleteUser(user.email)}}>Borrar</button></td>
               </tr>
             )
           })

@@ -1,3 +1,22 @@
+// en el caso de que quiera usar el toSorted que no esta soportado en typescript
+
+/* declaración global en TypeScript para extender la interfaz Array<T> y añadir un método personalizado llamado toSorted. Veamos línea por línea qué está haciendo:
+
+1. declare global {: Esto indica que estás declarando algo en el ámbito global de TypeScript.
+
+2. interface Array<T> {: Estás extendiendo la interfaz Array<T>. En TypeScript, las interfaces definen la forma que debe tener un objeto. En este caso, estás extendiendo la interfaz para todos los arrays.
+
+3. toSorted(compareFn?: (a: T, b: T) => number): T[]: Estás añadiendo un nuevo método llamado toSorted a la interfaz de todos los arrays. Este método acepta un argumento opcional compareFn, que es una función que toma dos elementos del array (a y b) y devuelve un número. El método toSorted devuelve un nuevo array ordenado según la función de comparación proporcionada.
+
+En resumen, con esta declaración, estás diciendo que todos los arrays en tu aplicación (en el ámbito global) ahora tienen un método adicional llamado toSorted que te permite ordenar los elementos del array según una función de comparación personalizada. */
+
+// la T es que el tipo de parametro se lo vamos aindicar nosotrs
+declare global {
+  interface Array<T> {
+    toSorted(compareFn?: (a: T, b: T) => number): T[]
+  }
+}
+
 export interface Welcome {
   results: User[]
   info: Info

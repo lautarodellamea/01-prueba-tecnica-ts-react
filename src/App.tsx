@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { UserList } from './components/UserList'
 import { type User } from './types/types'
@@ -6,9 +6,32 @@ import { type User } from './types/types'
 const App: React.FunctionComponent = () => {
   const [users, setUsers] = useState<User[]>([])
   const [showColors, setShowColors] = useState(false)
+  const [sortByCountry, setSortByCountry] = useState(false)
+  const [filterCountry, setFilterCountry] = useState<string | null>(null)
+
+  // useRef es para guardar un valor que se comparta entre renderizados, pero que al cambiar no vuelva a renderizar el componente, tambien sirve para guardar un elemento del dom
+  const originalUsers = useRef<User[]>([])
 
   const toggleColors = () => {
     setShowColors(!showColors)
+  }
+
+  const toggleSortByCountry = () => {
+    setSortByCountry(prevState => !prevState)
+  }
+
+  const handleReset = () => {
+    setUsers(originalUsers.current)
+  }
+
+
+  const handleDelete = (email: string) => {
+    const filteredUsers = users.filter((user) => {
+      return user.email !== email
+    })
+
+    setUsers(filteredUsers)
+
   }
 
   useEffect(() => {
@@ -16,10 +39,41 @@ const App: React.FunctionComponent = () => {
       .then(async res => await res.json())
       .then(res => {
         setUsers(res.results)
+        originalUsers.current = res.results
       }).catch(err => {
         console.error(err)
       })
   }, [])
+
+  const filteredUsers =useMemo(() =>{
+
+    console.log("calculate filterUsers")
+
+    return typeof filterCountry === "string" && filterCountry.length > 0
+      ? users.filter(user =>{
+        return user.location.country.toLowerCase().includes(filterCountry.toLowerCase()
+      )})
+      : users
+  }, [users, filterCountry]) 
+
+
+
+  // aca decimeos que memorice el valor de la constante sortedUsers y no cambie ni lo vuelva a calcular entre renderizados, a menos que el valor de filteredUsers o sortByCountry cambie
+  const sortedUsers = useMemo(() => {
+    console.log("calculate sortedUsers")
+  
+    return sortByCountry
+      ? [...filteredUsers].sort(
+        (a, b) => { // sort muta el array original, lo cual no puedo vovler a obtener el original sin ordenar, por eso debemos usar destructuracion (spread operator)
+          // localeCompare compoara dos string teniendo en cuenta el idioma y todo (acentos y demas), structuredClone(users) (copia profunda), users.toSorted() (nuevo en js)
+          return a.location.country.localeCompare(b.location.country)
+        })
+    : filteredUsers
+  }
+  
+  , [filteredUsers, sortByCountry])
+
+
 
   return (
     <>
@@ -30,9 +84,16 @@ const App: React.FunctionComponent = () => {
           <button onClick={toggleColors}>
             Colorear filas
           </button>
+          <button onClick={toggleSortByCountry}>
+            {sortByCountry ? 'No ordenar por país' : 'Ordenar por país'}
+          </button>
+          <button onClick={handleReset}>
+            Resetear estado
+          </button>
+          <input type="text" placeholder='Filtra por país' onChange={(e)=>{setFilterCountry(e.target.value)}} />
         </header>
         <main>
-          <UserList showColors={showColors} users={users}/>
+          <UserList showColors={showColors} users={sortedUsers} deleteUser={handleDelete}/>
         </main>
       </div>
     </>

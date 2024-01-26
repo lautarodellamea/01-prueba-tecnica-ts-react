@@ -32,6 +32,7 @@ module.exports = {
         "react/react-in-jsx-scope": "off",
 		"import/no-absolute-path": "off",
 		"react/prop-types": "off",
-        "@typescript-eslint/explicit-function-return-type": "off"
-    }
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/method-signature-style": "off",
+        // "@typescript-eslint/no-unsafe-argument": "off" }
 }
