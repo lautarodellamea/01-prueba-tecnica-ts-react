@@ -18,3 +18,8 @@
 .table--showColors tr:nth-child(even){
   background-color: #555;
 }
+
+
+.pointer{
+  cursor: crosshair;
+}

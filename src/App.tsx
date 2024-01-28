@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import { UserList } from './components/UserList'
-import { type User } from './types/types'
+import { SortBy, type User } from './types/types.d'
 
 const App: React.FunctionComponent = () => {
   const [users, setUsers] = useState<User[]>([])
   const [showColors, setShowColors] = useState(false)
-  const [sortByCountry, setSortByCountry] = useState(false)
+  const [sorting, setSorting] = useState<SortBy>(SortBy.NONE)
   const [filterCountry, setFilterCountry] = useState<string | null>(null)
 
   // useRef es para guardar un valor que se comparta entre renderizados, pero que al cambiar no vuelva a renderizar el componente, tambien sirve para guardar un elemento del dom
@@ -17,7 +17,8 @@ const App: React.FunctionComponent = () => {
   }
 
   const toggleSortByCountry = () => {
-    setSortByCountry(prevState => !prevState)
+    const newSortingValue = sorting === SortBy.NONE ? SortBy.COUNTRY : SortBy.NONE
+    setSorting(newSortingValue)
   }
 
   const handleReset = () => {
@@ -32,6 +33,10 @@ const App: React.FunctionComponent = () => {
 
     setUsers(filteredUsers)
 
+  }
+
+  const handleChangeSort = (sort: SortBy) => {
+    setSorting(sort)
   }
 
   useEffect(() => {
@@ -61,17 +66,29 @@ const App: React.FunctionComponent = () => {
   // aca decimeos que memorice el valor de la constante sortedUsers y no cambie ni lo vuelva a calcular entre renderizados, a menos que el valor de filteredUsers o sortByCountry cambie
   const sortedUsers = useMemo(() => {
     console.log("calculate sortedUsers")
+
+    if (sorting === SortBy.NONE) return filteredUsers
   
-    return sortByCountry
+   /*  return sorting
       ? [...filteredUsers].sort(
         (a, b) => { // sort muta el array original, lo cual no puedo vovler a obtener el original sin ordenar, por eso debemos usar destructuracion (spread operator)
           // localeCompare compoara dos string teniendo en cuenta el idioma y todo (acentos y demas), structuredClone(users) (copia profunda), users.toSorted() (nuevo en js)
           return a.location.country.localeCompare(b.location.country)
         })
-    : filteredUsers
+    : filteredUsers */
+    const compareProperties: Record<string, (user: User) => any> = {
+      [SortBy.COUNTRY]: user => user.location.country,
+      [SortBy.NAME]: user => user.name.first,
+      [SortBy.LAST]: user => user.name.last
+    }
+
+    return filteredUsers.toSorted((a, b) => {
+      const extractProperty = compareProperties[sorting]
+      return extractProperty(a).localeCompare(extractProperty(b))
+    })
   }
   
-  , [filteredUsers, sortByCountry])
+  , [filteredUsers, sorting])
 
 
 
@@ -85,7 +102,7 @@ const App: React.FunctionComponent = () => {
             Colorear filas
           </button>
           <button onClick={toggleSortByCountry}>
-            {sortByCountry ? 'No ordenar por país' : 'Ordenar por país'}
+          {sorting === SortBy.COUNTRY ? 'No ordenar por país' : 'Ordenar por país'}
           </button>
           <button onClick={handleReset}>
             Resetear estado
@@ -93,7 +110,7 @@ const App: React.FunctionComponent = () => {
           <input type="text" placeholder='Filtra por país' onChange={(e)=>{setFilterCountry(e.target.value)}} />
         </header>
         <main>
-          <UserList showColors={showColors} users={sortedUsers} deleteUser={handleDelete}/>
+          <UserList changeSorting={handleChangeSort} showColors={showColors} users={sortedUsers} deleteUser={handleDelete}/>
         </main>
       </div>
     </>
